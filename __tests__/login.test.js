@@ -22,6 +22,7 @@ const mockUser = {
   password: "hashedpassword",
   subscription: "starter",
   token: null,
+  verify: true,
 };
 
 jest.unstable_mockModule("../services/authServices.js", () => ({
