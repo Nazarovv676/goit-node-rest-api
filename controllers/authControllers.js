@@ -1,5 +1,9 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import gravatar from "gravatar";
+import path from "path";
+import fs from "fs/promises";
+import { fileURLToPath } from "url";
 import * as authServices from "../services/authServices.js";
 import HttpError from "../helpers/HttpError.js";
 import {
@@ -7,6 +11,9 @@ import {
   loginSchema,
   updateSubscriptionSchema,
 } from "../schemas/authSchemas.js";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const avatarsDir = path.join(__dirname, "../public/avatars");
 
 export const register = async (req, res, next) => {
   try {
@@ -22,8 +29,13 @@ export const register = async (req, res, next) => {
       throw HttpError(409, "Email in use");
     }
 
+    const avatarURL = gravatar.url(email, { s: "250", d: "retro" }, true);
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await authServices.createUser({ email, password: hashedPassword });
+    const user = await authServices.createUser({
+      email,
+      password: hashedPassword,
+      avatarURL,
+    });
 
     res.status(201).json({
       user: {
@@ -103,6 +115,29 @@ export const updateSubscription = async (req, res, next) => {
     );
 
     res.json({ email: user.email, subscription: user.subscription });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateAvatar = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      throw HttpError(400, "No file uploaded");
+    }
+
+    const { id } = req.user;
+    const { path: tempPath, originalname } = req.file;
+    const ext = path.extname(originalname);
+    const filename = `${id}${ext}`;
+    const newPath = path.join(avatarsDir, filename);
+
+    await fs.rename(tempPath, newPath);
+
+    const avatarURL = `/avatars/${filename}`;
+    await authServices.updateUserAvatar(id, avatarURL);
+
+    res.json({ avatarURL });
   } catch (error) {
     next(error);
   }

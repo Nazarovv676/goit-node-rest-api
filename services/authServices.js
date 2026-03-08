@@ -21,3 +21,9 @@ export const updateUserSubscription = async (id, subscription) => {
   if (!user) return null;
   return user.update({ subscription });
 };
+
+export const updateUserAvatar = async (id, avatarURL) => {
+  const user = await User.findByPk(id);
+  if (!user) return null;
+  return user.update({ avatarURL });
+};
