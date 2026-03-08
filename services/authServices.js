@@ -27,3 +27,11 @@ export const updateUserAvatar = async (id, avatarURL) => {
   if (!user) return null;
   return user.update({ avatarURL });
 };
+
+export const findUserByVerificationToken = async (verificationToken) => {
+  return User.findOne({ where: { verificationToken } });
+};
+
+export const updateUserVerification = async (id) => {
+  return User.update({ verify: true, verificationToken: null }, { where: { id } });
+};
