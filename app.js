@@ -27,6 +27,9 @@ sequelize
   .authenticate()
   .then(() => {
     console.log("Database connection successful");
+    return sequelize.sync({ force: false });
+  })
+  .then(() => {
     app.listen(3000, () => {
       console.log("Server is running. Use our API on port: 3000");
     });
